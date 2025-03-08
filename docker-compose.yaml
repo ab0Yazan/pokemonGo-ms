@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  auth-php:
+    build:
+      context: .
+      dockerfile: ./docker/auth/Dockerfile
+    container_name: auth-php
+    volumes:
+      - ./services/auth-service:/var/www/html
+    networks:
+      - pokemon-network
+
+  auth-nginx:
+    image: nginx:alpine
+    container_name: auth-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./services/auth-service:/var/www/html
+      - ./docker/auth/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - auth-php
+    networks:
+      - pokemon-network
+
+  auth-db:
+    image: mysql:8.0
+    platform: linux/x86_64
+    restart: unless-stopped
+    volumes:
+      - ./bin/mysql:/docker-entrypoint-initdb.d
+      - ./mysqldata:/var/lib/mysql
+    ports:
+      - 3307:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    networks:
+      - pokemon-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: auth-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: auth-db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: root
+    depends_on:
+      - auth-db
+    networks:
+      - pokemon-network
+
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"  # server port
+      - "15672:15672"  # UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - pokemon-network
+
+volumes:
+  auth-db-data:
+  rabbitmq-data:
+
+networks:
+  pokemon-network:
+    driver: bridge
