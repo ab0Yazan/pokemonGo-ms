@@ -132,7 +132,17 @@ services:
     networks:
       - pokemon-network
 
-
+  monster-generator:
+    build:
+      context: .
+      dockerfile: ./docker/monster/Dockerfile
+    entrypoint: sh -c "sleep 10 && php /var/www/html/artisan monster:generate"
+    restart: unless-stopped
+    volumes:
+      - ./services/monster-service:/var/www/html
+      - ./services/shared:/var/www/html/shared
+    networks:
+      - pokemon-network
 
 
 volumes:

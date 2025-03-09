@@ -29,7 +29,7 @@ COPY ../services/shared /var/www/html/shared
 
 
 # Install dependencies
-RUN composer install --optimize-autoloader --no-dev
+# RUN composer install --optimize-autoloader --no-dev
 
 # Set permissions
 RUN chown -R monster:monster /var/www/html/storage /var/www/html/bootstrap/cache
