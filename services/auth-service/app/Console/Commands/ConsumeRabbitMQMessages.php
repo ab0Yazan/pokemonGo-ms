@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Services\MessageQueueInterface;
 use Illuminate\Console\Command;
+use Shared\Services\MessageQueueInterface;
 
 class ConsumeRabbitMQMessages extends Command
 {
@@ -25,7 +25,7 @@ class ConsumeRabbitMQMessages extends Command
             $msg->ack();
         };
 
-        $rabbitMQService->consume(env('RABBITMQ_QUEUE'), $callback);
+        $rabbitMQService->consume($callback);
         $this->info('good');
     }
 }

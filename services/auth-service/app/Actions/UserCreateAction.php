@@ -3,8 +3,10 @@ namespace App\Actions;
 
 use App\DataTransferObjects\UserData;
 use App\DataTransferObjects\UserRegistrationData;
+use App\Events\UserRegisteredEvent;
 use App\Repositories\UserRepositoryInterface;
-use App\Services\MessageQueueInterface;
+use Shared\DataTransferObjects\UserData as DataTransferObjectsUserData;
+use Shared\Services\MessageQueueInterface;
 
 class UserCreateAction
 {
@@ -24,7 +26,8 @@ class UserCreateAction
                 'email' => $user->email,
             ],
         ]);
-        $this->rabbitMQService->publish($message, env('RABBITMQ_QUEUE'));
+        $this->rabbitMQService->publish(
+            json_encode(new UserRegisteredEvent(new DataTransferObjectsUserData($user->id, $user->name, $user->email))));
         return UserData::fromArray(['name' => $user->name, 'email' => $user->email, 'token' => $token]);
     }
 

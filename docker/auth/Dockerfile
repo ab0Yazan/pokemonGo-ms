@@ -25,9 +25,10 @@ WORKDIR /var/www/html
 
 # Copy application files
 COPY ../services/auth-service /var/www/html
+COPY ../services/shared /var/www/html/shared
 
 # Install dependencies
-RUN composer install --optimize-autoloader --no-dev
+# RUN composer install --optimize-autoloader --no-dev
 
 # Set permissions
 RUN chown -R auth:auth /var/www/html/storage /var/www/html/bootstrap/cache

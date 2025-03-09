@@ -1,0 +1,44 @@
+FROM php:8.2-fpm
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libzip-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    && docker-php-ext-install pdo_mysql zip mbstring exif pcntl bcmath gd
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Create a user with the same UID and GID as the host user
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN groupadd -g ${GROUP_ID} monster && \
+    useradd -u ${USER_ID} -g monster -m monster && \
+    usermod -aG www-data monster
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application files
+COPY ../services/monster-service /var/www/html
+COPY ../services/shared /var/www/html/shared
+
+
+# Install dependencies
+RUN composer install --optimize-autoloader --no-dev
+
+# Set permissions
+RUN chown -R monster:monster /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
+
+# Switch to the new user
+USER monster
+
+# Start PHP-FPM
+CMD ["php-fpm"]
